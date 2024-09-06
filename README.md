@@ -1,3 +1,5 @@
+## Fork adopts code for mi purifier 3C
+
 ## ESPHome for various Xiaomi Air Purification Devices
 
 > For a step-by-step guide with pictures visit [this thread](https://community.home-assistant.io/t/link-xiaomi-air-purifier-3-3h-with-custom-esphome-firmware/656741/9) on the official home assistant forum.

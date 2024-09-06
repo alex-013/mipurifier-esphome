@@ -9,8 +9,6 @@ public:
   int last_heartbeat, last_query;
   
   Sensor *airquality_sensor = new Sensor();
-  Sensor *humidity_sensor = new Sensor();
-  Sensor *temperature_sensor = new Sensor();
   Sensor *filterlife_sensor = new Sensor();
 
   MiPurifier(UARTComponent *uart) : UARTDevice(uart) {}
@@ -40,58 +38,52 @@ public:
   float get_setup_priority() const override { return esphome::setup_priority::AFTER_WIFI; } 
 
   void turn_on() {
-    strcpy(send_buffer, "down set_properties 2 2 true");
+    strcpy(send_buffer, "down set_properties 2 1 true");
   }
 
   void turn_off() {
-    strcpy(send_buffer, "down set_properties 2 2 false");
+    strcpy(send_buffer, "down set_properties 2 1 false");
   }
 
   void enable_beeper() {
-    strcpy(send_buffer, "down set_properties 5 1 true");
+    strcpy(send_buffer, "down set_properties 6 1 true");
   }
 
   void disable_beeper() {
-    strcpy(send_buffer, "down set_properties 5 1 false");
+    strcpy(send_buffer, "down set_properties 6 1 false");
   }
 
   void lock() {
-    strcpy(send_buffer, "down set_properties 7 1 true");
+    strcpy(send_buffer, "down set_properties 8 1 true");
   }
 
   void unlock() {
-    strcpy(send_buffer, "down set_properties 7 1 false");
+    strcpy(send_buffer, "down set_properties 8 1 false");
   }
 
   void set_mode(std::string mode) {
     // 0: auto, 1: sleep, 2: manual, 3: low, 4: med, 5: high
     if (mode == "auto") {
-      strcpy(send_buffer, "down set_properties 2 5 0");
+      strcpy(send_buffer, "down set_properties 2 4 0");
     } else if (mode == "night") {
-      strcpy(send_buffer, "down set_properties 2 5 1");
-    } else if (mode == "manual") {
-      strcpy(send_buffer, "down set_properties 2 5 2");
-    } else if (mode == "low") {
       strcpy(send_buffer, "down set_properties 2 4 1");
-    } else if (mode == "medium") {
+    } else if (mode == "manual") {
       strcpy(send_buffer, "down set_properties 2 4 2");
-    } else if (mode == "high") {
-      strcpy(send_buffer, "down set_properties 2 4 3");
     }
   }
 
   void set_brightness(std::string brightness) {
     if (brightness == "off") {
-      strcpy(send_buffer, "down set_properties 6 1 2");
+      strcpy(send_buffer, "down set_properties 7 2 2");
     } else if (brightness == "low") {
-      strcpy(send_buffer, "down set_properties 6 1 1");
+      strcpy(send_buffer, "down set_properties 7 2 1");
     } else if (brightness == "high") {
-      strcpy(send_buffer, "down set_properties 6 1 0");
+      strcpy(send_buffer, "down set_properties 7 2 0");
     }
   }
 
   void set_manualspeed(int speed) {
-    snprintf(send_buffer, max_line_length, "down set_properties 10 10 %i", speed);
+    snprintf(send_buffer, max_line_length, "down set_properties 9 1 %i", speed);
   }
 
   void send_command(std::string s) {
@@ -99,18 +91,14 @@ public:
   }
 
   void update_property(char* id, char* val) {
-    if (strcmp(id, "36") == 0) {
+    if (strcmp(id, "34") == 0) {
       airquality_sensor->publish_state(atof(val));
-    } else if (strcmp(id, "37") == 0) {
-      humidity_sensor->publish_state(atof(val));
-    } else if (strcmp(id, "38") == 0) {
-      temperature_sensor->publish_state(atof(val));
-    } else if (strcmp(id, "43") == 0) {
+    } else if (strcmp(id, "41") == 0) {
       filterlife_sensor->publish_state(atof(val));
-    } else if (strcmp(id, "22") == 0) {
+    } else if (strcmp(id, "21") == 0) {
       // power (on, off)
       power_switch->publish_state(strcmp(val, "true") == 0);
-    } else if (strcmp(id, "25") == 0) {
+    } else if (strcmp(id, "24") == 0) {
       // mode (auto, night, manual, preset)
       is_preset = false;
       switch (atoi(val)) {
@@ -127,28 +115,13 @@ public:
           is_preset = true;
           break;
       }
-    } else if (strcmp(id, "24") == 0) {
-      // preset (low, medium, high)
-      if (is_preset) {
-        switch (atoi(val)) {
-          case 1:
-            mode_select->publish_state("low");
-            break;
-          case 2:
-            mode_select->publish_state("medium");
-            break;
-          case 3:
-            mode_select->publish_state("high");
-            break;
-        }
-      }
-    } else if (strcmp(id, "51") == 0) {
+    } else if (strcmp(id, "61") == 0) {
       // beeper (on, off)
       beeper_switch->publish_state(strcmp(val, "true") == 0);
-    } else if (strcmp(id, "71") == 0) {
+    } else if (strcmp(id, "81") == 0) {
       // lock (on, off)
       lock_switch->publish_state(strcmp(val, "true") == 0);
-    } else if (strcmp(id, "61") == 0) {
+    } else if (strcmp(id, "72") == 0) {
       // display brightness (off, low, high)
       switch (atoi(val)) {
         case 0:
@@ -161,7 +134,7 @@ public:
           brightness_select->publish_state("off");
           break;
       }
-    } else if (strcmp(id, "1010") == 0) {
+    } else if (strcmp(id, "91") == 0) {
       // manual speed
       manualspeed->publish_state(atof(val)+1);
     }
@@ -170,7 +143,7 @@ public:
   void setup() override {
     register_service(&MiPurifier::send_command, "send_command", {"command"});
     // get initial state & settings
-    strcpy(send_buffer, "down get_properties 2 2 2 5 5 1 6 1 7 1 10 10");
+    strcpy(send_buffer, "down get_properties 2 2 2 4 6 1 7 2 8 1 9 1");
   }
   
   void loop() override {
@@ -194,7 +167,7 @@ public:
             ESP_LOGD("purifier", "sent heartbeat");
           } else if (millis() - last_query > 60000) {
             // force sensor update
-            write_str("down get_properties 3 6 3 7 3 8 4 3");
+            write_str("down get_properties 3 4 4 1");
             last_query = millis();
             ESP_LOGD("purifier", "sent query string");
           } else {
